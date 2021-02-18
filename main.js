@@ -10,6 +10,7 @@ const createWindow = ()=>{
         }
     })
     win.loadFile('index.html');
+    //win.webContents.openDevTools();
     if (!fs.existsSync('./audio')) fs.mkdirSync('./audio');
     if (!fs.existsSync('./input')) fs.mkdirSync('./input');
     if (!fs.existsSync('./results')) fs.mkdirSync('./results');

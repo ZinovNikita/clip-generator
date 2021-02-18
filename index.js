@@ -21,13 +21,15 @@ const Segmentation = ()=>{
     let doneCount = 0;
     document.querySelector('#segmentation-body .card-title').innerHTML = '0%';
     document.querySelector('#segmentation-body button.btn').setAttribute('disabled',true);
-    a.forEach((v,i)=>{
+    const recurcy = (i)=>{
+        let v = a[i];
         document.querySelector('#segmentation-body .card-subtitle').innerHTML = './input/'+v;
         ffmpeg('./input/'+v).noAudio().size('1280x720').fps(25)
         .outputOptions(['-force_key_frames expr:gte(t,n_forced)','-map 0','-segment_time 1.0','-f segment','-reset_timestamps 1'])
         .on('error',err=>{
             document.querySelector('#segmentation-body').innerHTML += '<span class="badge badge-danger">Error '+v+': ' + err.message+'</span><br>';
             console.error(err);
+            if(i<a.length-1) recurcy(++i);
         })
         .on('end',()=>{
             doneCount++;
@@ -38,9 +40,11 @@ const Segmentation = ()=>{
             if(doneCount==a.length)
                 document.querySelector('#segmentation-body button.btn').removeAttribute('disabled');
             document.querySelector('#segmentation-body').innerHTML += '<span class="badge badge-success">'+v+' finished!</span><br>';
+            if(i<a.length-1) recurcy(++i);
         })
-        .save('./segments/'+(new Date().getTime())+'%5d.mp4');
-    });
+        .save('./segments/'+i+'_'+(new Date().getTime())+'%5d.mp4');
+    };
+    recurcy(0);
 }
 const Clipping = ()=>{
     let m = fs.readdirSync("./audio");
@@ -49,7 +53,8 @@ const Clipping = ()=>{
     let doneCount = 0;
     document.querySelector('#clipping-body .card-title').innerHTML = '0%';
     document.querySelector('#clipping-body button.btn').setAttribute('disabled',true);
-	m.forEach((a,i)=>{
+	const recurcy = (i)=>{
+        let a = m[i];
         new WebAudioAPI.AudioContext().decodeAudioData(fs.readFileSync("./audio/"+a).buffer,audioBuffer=>{
             document.querySelector('#clipping-body .card-subtitle').innerHTML = './audio/'+a;
             let dur = Math.ceil(audioBuffer.duration);
@@ -71,6 +76,7 @@ const Clipping = ()=>{
                 .on('error',err=>{
                     document.querySelector('#clipping-body').innerHTML += '<span class="badge badge-danger">Error merging '+a+' with '+fn+'.mp4</span><br>';
                     console.error(err);
+                    if(i<m.length-1) recurcy(++i);
                 })
                 .on('end',()=>{
                     doneCount++;
@@ -80,10 +86,12 @@ const Clipping = ()=>{
                     if(doneCount==m.length*2)
                         document.querySelector('#clipping-body button.btn').removeAttribute('disabled');
                     document.querySelector('#clipping-body').innerHTML += '<span class="badge badge-success">Merging '+fn+'.mp4 finished!</span><br>';
+                    if(i<m.length-1) recurcy(++i);
                 })
                 .save('./results/'+fn+'.mp4');
             })
             .mergeToFile('./tmp/'+fn+'.mp4');
         })
-    });
+    };
+    recurcy(0);
 }
