@@ -16,10 +16,12 @@ const durationString = secs=>{
     return hr+':'+min+':'+sec;
 }
 const Segmentation = ()=>{
+    let a = fs.readdirSync("./input");
+    if(!a||a.length==0) return alert('Empty ./input folder');
     let doneCount = 0;
     document.querySelector('#segmentation-body .card-title').innerHTML = '0%';
     document.querySelector('#segmentation-body button.btn').setAttribute('disabled',true);
-    fs.readdirSync("./input").forEach((v,i,a)=>{
+    a.forEach((v,i)=>{
         document.querySelector('#segmentation-body .card-subtitle').innerHTML = './input/'+v;
         ffmpeg('./input/'+v).noAudio().size('1280x720').fps(25)
         .outputOptions(['-force_key_frames expr:gte(t,n_forced)','-map 0','-segment_time 1.0','-f segment','-reset_timestamps 1'])
@@ -41,11 +43,13 @@ const Segmentation = ()=>{
     });
 }
 const Clipping = ()=>{
+    let m = fs.readdirSync("./audio");
+    if(!m||m.length==0) return alert('Empty ./audio folder');
     let fls = fs.readdirSync("./segments");
     let doneCount = 0;
     document.querySelector('#clipping-body .card-title').innerHTML = '0%';
     document.querySelector('#clipping-body button.btn').setAttribute('disabled',true);
-	fs.readdirSync("./audio").forEach((a,i,m)=>{
+	m.forEach((a,i)=>{
         new WebAudioAPI.AudioContext().decodeAudioData(fs.readFileSync("./audio/"+a).buffer,audioBuffer=>{
             document.querySelector('#clipping-body .card-subtitle').innerHTML = './audio/'+a;
             let dur = Math.ceil(audioBuffer.duration);
